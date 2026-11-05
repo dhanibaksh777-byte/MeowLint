@@ -1,0 +1,89 @@
+{
+  "name": "meowlint",
+  "displayName": "MeowLint",
+  "description": "Your code has feelings. Your cat doesn't care.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:meowLint.cat",
+    "onCommand:meowlint.hello",
+    "onLanguage:*",
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "meowLint",
+          "title": "MeowLint",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "meowLint": [
+        {
+          "type": "webview",
+          "id": "meowLint.cat",
+          "name": "MeowLint"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "meowlint.hello",
+        "title": "MeowLint: Hello"
+      },
+      {
+        "command": "meowlint.setApiKey",
+        "title": "MeowLint: Set Gemini API Key"
+      },
+      {
+        "command": "meowlint.roastCurrentFile",
+        "title": "MeowLint: Roast Current File"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "MeowLint Configuration",
+        "properties": {
+          "meowlint.enableRoasts": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable/disable code roasts when files are saved"
+          },
+          "meowlint.sleepAfterSeconds": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1,
+            "description": "Seconds of inactivity before cat goes to sleep"
+          },
+          "meowlint.roastIntensity": {
+            "type": "string",
+            "default": "medium",
+            "enum": ["mild", "medium", "savage"],
+            "description": "Roast intensity level: mild (gentle), medium (balanced), savage (brutal)"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "18.x",
+    "typescript": "^5.0.0"
+  }
+}
