@@ -6,8 +6,8 @@ import { GameState } from './gameState';
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = vscode.window.createOutputChannel('MeowLint');
-  outputChannel.appendLine('MeowLint BUILD 2 activated');
-  console.log('MeowLint BUILD 2 activated');
+  outputChannel.appendLine('MeowLint BUILD 3 activated');
+  console.log('MeowLint BUILD 3 activated');
 
   const gameState = new GameState(context);
   const moodManager = new MoodManager();
@@ -18,11 +18,17 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider('meowLint.cat', catProvider)
   );
 
-  // Send initial game state to webview
-  catProvider.updateGameState(gameState.getState());
+  // Create and show status bar item
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  statusBarItem.text = '🐱 Lv - 🔥 0';
+  statusBarItem.tooltip = 'MeowLint - click to open';
+  statusBarItem.command = 'workbench.view.extension.meowLint';
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
 
-  gameState.onChange(state => {
-    catProvider.updateGameState(state);
+  // Update status bar on game state changes
+  gameState.onChange((state) => {
+    statusBarItem.text = `🐱 Lv ${state.level} · 🔥 ${state.streak}`;
   });
 
   context.subscriptions.push(
@@ -62,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
       const roast = await roaster.generateRoast(document);
       if (roast) {
         catProvider.updateSpeechBubble(roast);
-        gameState.recordRoast();
+        gameState.recordRoastReceived();
       }
     })
   );
@@ -75,6 +81,21 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage('MeowLint progress has been reset!');
         }
       });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('meowlint.showStatus', () => {
+      const state = gameState.getState();
+      const msg = `MeowLint Status:\n` +
+        `Version: 0.0.1\n` +
+        `View Provider Registered: yes\n` +
+        `GameState Loaded: yes (Lv ${state.level}, ${state.levelTitle})\n` +
+        `Total Roasts: ${state.totalRoasts}\n` +
+        `Errors Fixed: ${state.errorsFixed}\n` +
+        `Streak: ${state.streak}\n` +
+        `Annoyance: ${state.annoyance}%`;
+      vscode.window.showInformationMessage(msg);
     })
   );
 
@@ -98,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
       const roast = await roaster.generateRoast(document);
       if (roast) {
         catProvider.updateSpeechBubble(roast);
-        gameState.recordRoast();
+        gameState.recordRoastReceived();
       }
 
       gameState.recordCleanSave(hasErrors, errorCount);
@@ -112,6 +133,65 @@ export function activate(context: vscode.ExtensionContext) {
   moodManager.setMood('idle');
   catProvider.updateMood('idle');
   catProvider.updateSpeechBubble('Your code has feelings. Your cat doesn\'t care.');
+
+  // Debug commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('meowlint.debug.add100xp', () => {
+      const result = gameState.addXp(100);
+      catProvider.updateGameState(gameState.getState());
+      vscode.window.showInformationMessage(`Added 100 XP. Now at Lv ${result.newLevel}.`);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('meowlint.debug.unlockAchievement', async () => {
+      const achievementPick = await vscode.window.showQuickPick(
+        Object.entries(gameState.getState().achievements).map(([k, v]) => ({
+          label: k + (v ? ' ✓' : ''),
+          description: v ? 'already unlocked' : 'locked'
+        })),
+        { placeHolder: 'Select achievement to unlock' }
+      );
+      if (achievementPick) {
+        const key = achievementPick.label.split(' ')[0];
+        if (!gameState.getState().achievements.find((a: any) => a.id === key)?.unlocked) {
+          gameState.unlockAchievement(key);
+          catProvider.updateGameState(gameState.getState());
+          catProvider.updateSpeechBubble('Achievement unlocked: ' + key);
+        }
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('meowlint.debug.cycleReactions', async () => {
+      const reactions = ['idle', 'watching', 'angry', 'shocked', 'omg', 'suspicious', 'sleeping', 'smug', 'celebrate', 'confused'];
+      let i = 0;
+      const cycle = () => {
+        if (i >= reactions.length) return;
+        const r = reactions[i];
+        catProvider.postReaction(r, 2000);
+        catProvider.updateSpeechBubble('Reaction: ' + r);
+        i++;
+        setTimeout(cycle, 2500);
+      };
+      cycle();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('meowlint.debug.playReaction', async () => {
+      const reactionNames = ['idle', 'watching', 'angry', 'shocked', 'omg', 'suspicious', 'sleeping', 'smug', 'celebrate', 'confused'];
+      const picked = await vscode.window.showQuickPick(
+        reactionNames.map(r => ({ label: r })),
+        { placeHolder: 'Select reaction to play' }
+      );
+      if (picked) {
+        catProvider.postReaction(picked.label, 4000);
+        catProvider.updateSpeechBubble('Reaction: ' + picked.label);
+      }
+    })
+  );
 }
 
 function shouldRoast(document: vscode.TextDocument): boolean {

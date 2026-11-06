@@ -3,8 +3,10 @@
   "displayName": "MeowLint",
   "description": "Your code has feelings. Your cat doesn't care.",
   "version": "0.0.1",
+  "icon": "media/icon.png",
+  "publisher": "dhani",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.145.0"
   },
   "categories": [
     "Other"
@@ -47,6 +49,26 @@
       {
         "command": "meowlint.roastCurrentFile",
         "title": "MeowLint: Roast Current File"
+      },
+      {
+        "command": "meowlint.resetProgress",
+        "title": "MeowLint: Reset Progress"
+      },
+      {
+        "command": "meowlint.debug.add100xp",
+        "title": "MeowLint: Debug Add 100 XP"
+      },
+      {
+        "command": "meowlint.debug.unlockAchievement",
+        "title": "MeowLint: Debug Unlock Achievement"
+      },
+      {
+        "command": "meowlint.debug.cycleReactions",
+        "title": "MeowLint: Debug Cycle Reactions"
+      },
+      {
+        "command": "meowlint.debug.playReaction",
+        "title": "MeowLint: Debug Play Reaction"
       }
     ],
     "configuration": [
@@ -82,7 +104,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.80.0",
+    "@types/vscode": "^1.145.0",
     "@types/node": "18.x",
     "typescript": "^5.0.0"
   }
